@@ -1,0 +1,2 @@
+seed,algorithm_combo,best_dice_score
+0,max-pooling_dysample_lp-dynamic,"tensor(0.8190, device='cuda:0')"
