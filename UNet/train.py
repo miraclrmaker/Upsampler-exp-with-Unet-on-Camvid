@@ -166,8 +166,7 @@ def train_model(
                           betas=(0.9, 0.999),
                           eps=1e-8)
     
-    # WarmupPoly学习率调度策略 - 更适合语义分割任务
-    # 这是DeepLab等顶级分割模型常用的调度策略
+    # WarmupPoly学习率调度策略
     class WarmupPolyLR:
         def __init__(self, optimizer, max_epochs, warmup_epochs=5, power=0.9, min_lr=1e-6):
             self.optimizer = optimizer
@@ -191,8 +190,7 @@ def train_model(
             for param_group, lr in zip(self.optimizer.param_groups, lrs):
                 param_group['lr'] = lr
             
-            return lrs[0]  # 返回第一个参数组的学习率用于日志
-    
+            return lrs[0]  
     # 使用WarmupPoly调度器
     scheduler = WarmupPolyLR(
         optimizer, 
@@ -595,7 +593,6 @@ def compute_class_weights_cached(train_dataset, device, cache_file='class_weight
             logging.info(f"  {name}: weight={weight:.4f}, frequency={freq:.6f}")
     
     elif weight_strategy == 'median_frequency':
-        # 使用median_frequency策略（原来的方法）
         non_zero_freqs = frequencies[frequencies > 1e-7]
         if len(non_zero_freqs) > 0:
             median_freq = torch.median(non_zero_freqs)
@@ -615,14 +612,11 @@ def compute_class_weights_cached(train_dataset, device, cache_file='class_weight
     else:
         raise ValueError(f"Unknown weight strategy: {weight_strategy}. Use 'log' or 'median_frequency'")
     
-    # 移动到目标设备
     weights = weights.to(device)
     
-    # 保存缓存
     torch.save({
         'cache_key': cache_key,
-        'class_weights': weights.cpu(),  # 保存到CPU以便跨设备使用
-        'pixel_counts': pixel_counts,
+        'class_weights': weights.cpu(), 
         'frequencies': frequencies
     }, cache_file)
     logging.info(f"Class weights cached to {cache_file}")
@@ -671,7 +665,7 @@ if __name__ == '__main__':
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         logging.info(f'Using device {device}')
         
-        # 初始内存清理
+        
         cleanup_gpu_memory()
         # device = [torch.device('cuda:1'), torch.device('cuda:2'), torch.device('cuda:3')]
 
@@ -694,7 +688,7 @@ if __name__ == '__main__':
                 for u in up:
                     logging.info(f"Starting experiment with down-sampling: {do}, up-sampling: {u}")
                     
-                    # 深度内存清理
+                    
                     cleanup_gpu_memory()
                     
                     model = UNet(n_channels=3, n_classes=args.classes, style1=do, style2=u)
